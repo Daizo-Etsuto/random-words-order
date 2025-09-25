@@ -4,7 +4,7 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta, timezone
 import io
-from streamlit_sortables import sort_items  # ✅ 修正ポイント
+from streamlit_sortables import sortable  # ✅ こちらに修正
 
 # ==== 日本時間 ====
 try:
@@ -189,7 +189,7 @@ if ss.phase == "finished" and ss.show_save_ui:
 # ==== 出題 ====
 if ss.phase == "quiz" and ss.current:
     current = ss.current
-    sentence = current["例文"].strip()  # 並べ替え対象は「例文」
+    sentence = current["例文"].strip()
     words = sentence.split()
     shuffled = random.sample(words, len(words))
 
@@ -197,7 +197,7 @@ if ss.phase == "quiz" and ss.current:
     st.write(current["和訳"])
 
     st.subheader("単語を並べ替えてください")
-    sorted_words = sort_items(  # ✅ 修正ポイント
+    sorted_words = sortable(  # ✅ こちらを利用
         shuffled,
         direction="horizontal",
         key=f"q_{len(ss.history)}"
@@ -212,7 +212,6 @@ if ss.phase == "quiz" and ss.current:
             status = "不正解"
             st.error(f"不正解… 正解は {' '.join(words)}")
 
-        # 履歴に追加
         ss.history.append(
             {
                 "英文": sentence,
