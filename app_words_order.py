@@ -4,7 +4,7 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta, timezone
 import io
-from streamlit_sortable_list import sortable_list  # ✅ ライブラリ変更
+from streamlit_sortable_list import sortable_list  # ✅ 採用ライブラリ
 
 # ==== 日本時間 ====
 try:
@@ -144,13 +144,11 @@ if ss.phase == "menu":
 if ss.phase == "done":
     st.success("全問終了！お疲れさまでした🎉")
 
-    # 今回の所要時間
     elapsed = int(time.time() - ss.segment_start)
     minutes = elapsed // 60
     seconds = elapsed % 60
     st.info(f"今回の所要時間: {minutes}分 {seconds}秒")
 
-    # 累積総時間
     total_seconds = int(ss.total_elapsed + elapsed)
     tmin = total_seconds // 60
     tsec = total_seconds % 60
@@ -189,7 +187,7 @@ if ss.phase == "finished" and ss.show_save_ui:
 # ==== 出題 ====
 if ss.phase == "quiz" and ss.current:
     current = ss.current
-    sentence = current["例文"].strip()  # 並べ替え対象は「例文」
+    sentence = current["例文"].strip()
     words = sentence.split()
     shuffled = random.sample(words, len(words))
 
@@ -197,7 +195,7 @@ if ss.phase == "quiz" and ss.current:
     st.write(current["和訳"])
 
     st.subheader("単語を並べ替えてください")
-    sorted_words = sortable_list(  # ✅ ここを変更
+    sorted_words = sortable_list(  # ✅ 変更済み
         shuffled,
         direction="horizontal",
         key=f"q_{len(ss.history)}"
@@ -212,7 +210,6 @@ if ss.phase == "quiz" and ss.current:
             status = "不正解"
             st.error(f"不正解… 正解は {' '.join(words)}")
 
-        # 履歴に追加
         ss.history.append(
             {
                 "英文": sentence,
