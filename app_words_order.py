@@ -4,7 +4,7 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta, timezone
 import io
-from streamlit_sortable_list import sortable_list  # ✅ 採用ライブラリ
+from streamlit_sortables import sort_items  # ✅ 正式対応ライブラリ
 
 # ==== 日本時間 ====
 try:
@@ -195,7 +195,7 @@ if ss.phase == "quiz" and ss.current:
     st.write(current["和訳"])
 
     st.subheader("単語を並べ替えてください")
-    sorted_words = sortable_list(  # ✅ 変更済み
+    sorted_words = sort_items(  # ✅ こちらを利用
         shuffled,
         direction="horizontal",
         key=f"q_{len(ss.history)}"
