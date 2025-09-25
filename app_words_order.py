@@ -163,11 +163,15 @@ if ss.phase == "finished" and ss.show_save_ui:
     ss.user_name = st.text_input("氏名を入力してください", value=ss.user_name)
     if ss.user_name:
         filename, csv_data = prepare_csv()
-...         if st.download_button("📥 保存（ダウンロード）", data=csv_data, file_name=filename, mime="text/csv"):
-...             reset_all()
-...             st.success("保存しました。新しい学習を始められます。")
-...             st.rerun()
-... 
+        if st.download_button(
+            "📥 保存（ダウンロード）",
+            data=csv_data,
+            file_name=filename,
+            mime="text/csv"
+        ):
+            reset_all()
+            st.success("保存しました。新しい学習を始められます。")
+            st.rerun()
 ... # ==== 出題 ====
 ... if ss.phase == "quiz" and ss.current:
 ...     current = ss.current
@@ -200,4 +204,5 @@ if ss.phase == "finished" and ss.show_save_ui:
 ...         time.sleep(1)
 ...         next_question()
 ...         st.rerun()
+
 
