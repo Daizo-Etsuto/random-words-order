@@ -4,6 +4,7 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta, timezone
 import io
+import json
 
 # ==== 日本時間 ====
 try:
@@ -39,20 +40,23 @@ st.markdown(
     .choice-header {margin-top:0.8em;}
     .progress {font-weight:bold; margin: 0.5rem 0;}
 
-    /* 単語ボタンを横並び左寄せ */
+    /* 単語ボタンを横並び＋折り返し */
     .word-buttons {
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-start;
-        gap: 0.3em;
-    }
-    .word-buttons form {
-        margin: 0;
+        gap: 0.4em;
     }
     .word-buttons button {
-        min-width: 60px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
         padding: 0.4em 0.8em;
         font-size: 16px;
+        cursor: pointer;
+    }
+    .word-buttons button:hover {
+        background-color: #ddd;
     }
     </style>
     """,
@@ -208,26 +212,28 @@ if ss.phase == "quiz" and ss.current:
     st.subheader("単語を並べ替えてください")
     st.write(current.get("和訳"))
 
-    # ==== 単語ボタン（横並び左寄せ）====
+    # ==== 単語ボタン（横並び・折り返し）====
     buttons_html = '<div class="word-buttons">'
     for i, w in enumerate(ss.remaining_words[:]):
+        # JS で fetch → session_state に保存
         buttons_html += f"""
-        <form action="" method="post">
-            <input type="hidden" name="picked_word" value="{w}">
-            <button type="submit">{w}</button>
-        </form>
+        <button onclick="fetch('', {{
+            method: 'POST',
+            headers: {{'Content-Type': 'application/json'}},
+            body: JSON.stringify({{'word_pick': '{w}'}})
+        }}).then(() => window.location.reload());">{w}</button>
         """
     buttons_html += "</div>"
     st.markdown(buttons_html, unsafe_allow_html=True)
 
     # ==== ボタンクリック検出 ====
-    if "picked_word" in st.session_state:
-        chosen = st.session_state.picked_word
+    if "word_pick" in st.session_state:
+        chosen = st.session_state.word_pick
         if chosen in ss.remaining_words:
             ss.selected_words.append(chosen)
             ss.remaining_words.remove(chosen)
-            del st.session_state["picked_word"]
-            st.rerun()
+        del st.session_state["word_pick"]
+        st.rerun()
 
     st.write("あなたの並べ替え:", " ".join(ss.selected_words))
 
