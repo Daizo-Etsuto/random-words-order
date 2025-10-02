@@ -4,7 +4,9 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta, timezone
 import io
-from streamlit_sortables import sort_items  # ✅ 正式対応ライブラリ
+import streamlit_sortables as ss
+sorted_words = ss.sort_items(shuffled, direction="horizontal", key=f"q_{len(ss.history)}")
+
 
 # ==== 日本時間 ====
 try:
@@ -221,3 +223,4 @@ if ss.phase == "quiz" and ss.current:
         time.sleep(1)
         next_question()
         st.rerun()
+
