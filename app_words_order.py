@@ -212,30 +212,36 @@ if ss.phase == "quiz" and ss.current:
     st.subheader("単語を並べ替えてください")
     st.write(current.get("和訳"))
 
-    # ==== 単語ボタン（横並び・折り返し）====
-    buttons_html = '<div class="word-buttons">'
-    for i, w in enumerate(ss.remaining_words[:]):
-        # JS で fetch → session_state に保存
-        buttons_html += f"""
-        <button onclick="fetch('', {{
-            method: 'POST',
-            headers: {{'Content-Type': 'application/json'}},
-            body: JSON.stringify({{'word_pick': '{w}'}})
-        }}).then(() => window.location.reload());">{w}</button>
-        """
-    buttons_html += "</div>"
-    st.markdown(buttons_html, unsafe_allow_html=True)
+# ==== CSS で st.button を横並び・折り返しに ====
+st.markdown(
+    """
+    <style>
+    div.stButton > button {
+        margin: 0.2em;
+    }
+    div.word-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-    # ==== ボタンクリック検出 ====
-    if "word_pick" in st.session_state:
-        chosen = st.session_state.word_pick
-        if chosen in ss.remaining_words:
-            ss.selected_words.append(chosen)
-            ss.remaining_words.remove(chosen)
-        del st.session_state["word_pick"]
+# ==== 単語ボタン ====
+st.write("単語を選んでください:")
+
+st.markdown('<div class="word-wrap">', unsafe_allow_html=True)
+for i, w in enumerate(ss.remaining_words[:]):
+    if st.button(w, key=f"pick_{ss.run_answered}_{i}"):
+        ss.selected_words.append(w)
+        ss.remaining_words.remove(w)
         st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
-    st.write("あなたの並べ替え:", " ".join(ss.selected_words))
+st.write("あなたの並べ替え:", " ".join(ss.selected_words))
+
 
     # ==== 操作ボタン ====
     c1, c2, c3 = st.columns([1, 1, 1], gap="small")
@@ -315,3 +321,4 @@ if ss.phase == "done":
             reset_all(keep_history=False)
             ss.phase = "menu"
             st.rerun()
+
