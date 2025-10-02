@@ -83,12 +83,12 @@ if not required_cols.issubset(df.columns):
 
 # ==== セッション初期化 ====
 ss = st.session_state
-ss.setdefault("phase", "menu")                   # menu / quiz / done / finished
-ss.setdefault("history", [])                      # 累積
+ss.setdefault("phase", "menu")                   # menu / quiz / done
+ss.setdefault("history", [])                      # 累積（全ラン）
 ss.setdefault("total_elapsed", 0)                 # 累積（秒）
 
 # ランごとの状態
-ss.setdefault("question_pool", [])                # 今回出題する問題の配列（dict のリスト）
+ss.setdefault("question_pool", [])                # 今回出題する問題の配列
 ss.setdefault("run_total_questions", 0)           # 今回の問題数
 ss.setdefault("run_answered", 0)                  # 今回 解答済み数
 ss.setdefault("current", None)
@@ -138,11 +138,24 @@ def human_time(sec: int) -> str:
 
 
 def prepare_csv():
-    # 履歴 DataFrame
     history_df = pd.DataFrame(ss.history)
-    # 累積総学習時間（ダブルカウント防止のため、ss.total_elapsed をそのまま使う）
+
+    # 旧カラムがあれば削除
+    for col in ["所要時間"]:
+        if col in history_df.columns:
+            history_df = history_df.drop(columns=[col])
+
+    # 累積総学習時間を可読表記で付与（全行に同値）
     total_seconds = int(ss.total_elapsed)
     history_df["累計時間"] = human_time(total_seconds)
+
+    # 列順そろえ
+    desired_cols = ["出題形式", "英文", "結果", "経過秒", "累計時間"]
+    for c in desired_cols:
+        if c not in history_df.columns:
+            history_df[c] = pd.NA
+    history_df = history_df[desired_cols]
+
     # CSVへ
     timestamp = datetime.now(JST).strftime("%Y%m%d_%H%M%S")
     filename = f"{ss.user_name}_{timestamp}.csv" if ss.user_name else f"history_{timestamp}.csv"
@@ -151,7 +164,7 @@ def prepare_csv():
     csv_data = csv_buffer.getvalue().encode("utf-8-sig")
     return filename, csv_data
 
-# ==== メニュー：問題数の選択 ====
+# ==== メニュー：問題数の選択（ラジオ） ====
 if ss.phase == "menu":
     st.subheader("問題数を選んでください")
 
@@ -193,17 +206,17 @@ if ss.phase == "quiz" and ss.current:
     # 進捗
     st.markdown(f"<div class='progress'>進捗: {ss.run_answered+1}/{ss.run_total_questions} 問</div>", unsafe_allow_html=True)
 
-    # 表示文言（ご要望に合わせて）
-    st.subheader("和訳：例：その俳優はステージで微笑みました。")
-    st.write(current["和訳"])
-    st.subheader("指示：単語を並べ替えてください")
+    # 表示文言（要望に合わせて）
+    st.subheader("和訳")
+    st.subheader("単語を並べ替えてください")
+    st.write(current.get("", ""))  # 空キー参照の要望に合わせ安全に取得
 
     # 選択UI（ボタン：選んだら候補から消える）
     cols = st.columns(max(1, min(6, len(ss.remaining_words))))
     for i, w in enumerate(ss.remaining_words[:]):
         with cols[i % len(cols)]:
-            if st.button(w, key=f"pick_{w}_{ss.run_answered}"):
-                # 追加 & 候補から削除
+            # 重複単語でも key が衝突しないよう i を含める
+            if st.button(w, key=f"pick_{ss.run_answered}_{i}"):
                 ss.selected_words.append(w)
                 ss.remaining_words.remove(w)
                 st.rerun()
@@ -213,7 +226,7 @@ if ss.phase == "quiz" and ss.current:
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("やり直し", key=f"retry_{ss.run_answered}"):
-            # 初期化
+            # 初期化（再シャッフル）
             shuffled = random.sample(words, len(words))
             ss.selected_words = []
             ss.remaining_words = shuffled[:]
@@ -233,14 +246,13 @@ if ss.phase == "quiz" and ss.current:
             else:
                 st.error(f"不正解… 正解は {' '.join(words)}")
 
-            # 履歴に追記（累積保存形式）
+            # 履歴に追記（経過秒を保存、所要時間は保存しない）
             ss.history.append(
                 {
                     "出題形式": "並べ替え",
                     "英文": sentence,
                     "結果": status,
-                    "所要時間": human_time(elapsed_q),
-                    # "累計時間" は保存時に列として一括付与
+                    "経過秒": elapsed_q,
                 }
             )
 
@@ -262,6 +274,10 @@ if ss.phase == "done":
 
     # 今回のラン時間
     this_run_seconds = int(time.time() - ss.segment_start)
+    def human_time(sec: int) -> str:
+        m = sec // 60
+        s = sec % 60
+        return f"{m}分{s}秒"
     st.info(f"今回の所要時間: {human_time(this_run_seconds)}")
 
     # 累計時間
@@ -294,4 +310,3 @@ if ss.phase == "done":
     with c2:
         if st.button("終了", key="finish"):
             st.stop()
-
