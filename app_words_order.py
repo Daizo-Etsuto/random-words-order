@@ -213,11 +213,11 @@ if ss.phase == "quiz" and ss.current:
     st.subheader("単語を並べ替えてください")
     st.write(current.get("和訳"))  # 空キー参照の要望に合わせ安全に取得
 
-    # 選択UI（ボタン：選んだら候補から消える）
-    cols = st.columns(max(1, min(6, len(ss.remaining_words))))
-    for i, w in enumerate(ss.remaining_words[:]):
-        with cols[i % len(cols)]:
-            # 重複単語でも key が衝突しないよう i を含める
+       # ==== 単語選択UI（左寄せ配置） ====
+    st.write("単語を選んでください:")
+    word_container = st.container()
+    with word_container:
+        for i, w in enumerate(ss.remaining_words[:]):
             if st.button(w, key=f"pick_{ss.run_answered}_{i}"):
                 ss.selected_words.append(w)
                 ss.remaining_words.remove(w)
@@ -225,10 +225,10 @@ if ss.phase == "quiz" and ss.current:
 
     st.write("あなたの並べ替え:", " ".join(ss.selected_words))
 
-    c1, c2, c3 = st.columns(3)
+    # ==== 操作ボタン（間隔を半分に調整） ====
+    c1, c2, c3 = st.columns([1, 1, 1], gap="small")
     with c1:
         if st.button("やり直し", key=f"retry_{ss.run_answered}"):
-            # 初期化（再シャッフル）
             shuffled = random.sample(words, len(words))
             ss.selected_words = []
             ss.remaining_words = shuffled[:]
@@ -244,9 +244,10 @@ if ss.phase == "quiz" and ss.current:
             elapsed_q = int(time.time() - ss.q_start_time)
             status = "正解" if ss.selected_words == words else "不正解"
             if status == "正解":
-                st.success(f"正解！ {' '.join(words)}")
+                st.success(f"<div style='text-align:left;'>✅ 正解！ {' '.join(words)}</div>", unsafe_allow_html=True)
             else:
-                st.error(f"不正解… 正解は {' '.join(words)}")
+                st.error(f"<div style='text-align:left;'>❌ 不正解… 正解は {' '.join(words)}</div>", unsafe_allow_html=True)
+
 
             # 履歴に追記（経過秒を保存）
             ss.history.append(
@@ -313,3 +314,4 @@ if ss.phase == "done":
             reset_all(keep_history=False)  # file_uploader は保持
             ss.phase = "menu"
             st.rerun()
+
