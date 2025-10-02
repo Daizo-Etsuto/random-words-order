@@ -1,5 +1,6 @@
 streamlit
 pandas
-streamlit_sortables
+streamlit-sortables
+
 
 
