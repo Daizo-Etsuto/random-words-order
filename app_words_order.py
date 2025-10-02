@@ -154,23 +154,34 @@ def prepare_csv():
 # ==== メニュー：問題数の選択 ====
 if ss.phase == "menu":
     st.subheader("問題数を選んでください")
-    c1, c2, c3 = st.columns([1,1,2])
-    with c1:
-        if st.button("5題", use_container_width=True, key="q5"):
-            pick_question_pool(5)
-            start_run()
-            st.rerun()
-    with c2:
-        if st.button("10題", use_container_width=True, key="q10"):
-            pick_question_pool(10)
-            start_run()
-            st.rerun()
-    with c3:
-        num = st.number_input("好きな数", min_value=1, max_value=len(df), value=5, step=1, key="custom_num")
-        if st.button("この数で開始", use_container_width=True, key="start_custom"):
-            pick_question_pool(int(num))
-            start_run()
-            st.rerun()
+
+    choice = st.radio(
+        "出題数を選択",
+        ["5題", "10題", "好きな数"],
+        index=0,
+        horizontal=True,
+        key="q_choice",
+    )
+
+    if choice == "好きな数":
+        num = st.number_input(
+            "好きな数",
+            min_value=1,
+            max_value=len(df),
+            value=min(5, len(df)),
+            step=1,
+            key="custom_num",
+        )
+        selected_n = int(num)
+    else:
+        selected_n = 5 if choice == "5題" else 10
+        selected_n = min(selected_n, len(df))
+
+    if st.button("開始", use_container_width=True, key="start_run"):
+        pick_question_pool(selected_n)
+        start_run()
+        st.rerun()
+
     st.stop()
 
 # ==== 出題 ====
@@ -283,3 +294,4 @@ if ss.phase == "done":
     with c2:
         if st.button("終了", key="finish"):
             st.stop()
+
