@@ -5,21 +5,6 @@ import time
 from datetime import datetime, timedelta, timezone
 import io
 
-# ==== streamlit-sortables 読み込み ====
-try:
-    import streamlit_sortables
-    sort_items = streamlit_sortables.sort_items
-except ModuleNotFoundError:
-    st.error(
-        """⚠️ ライブラリ `streamlit-sortables` がインストールされていません。
-
-以下を実行してください:
-```
-pip install streamlit-sortables
-```"""
-    )
-    st.stop()
-
 # ==== 日本時間 ====
 try:
     from zoneinfo import ZoneInfo
@@ -209,15 +194,22 @@ if ss.phase == "quiz" and ss.current:
     st.write(current["和訳"])
 
     st.subheader("単語を並べ替えてください")
-    sorted_words = sort_items(
-        shuffled,
-        direction="horizontal",
-        key=f"q_{len(ss.history)}"
-    )
+
+    if "selected_words" not in ss:
+        ss.selected_words = []
+
+    cols = st.columns(len(shuffled))
+    for i, w in enumerate(shuffled):
+        with cols[i]:
+            if st.button(w, key=f"{w}_{len(ss.history)}"):
+                if w not in ss.selected_words:
+                    ss.selected_words.append(w)
+
+    st.write("あなたの並べ替え:", " ".join(ss.selected_words))
 
     if st.button("採点"):
         elapsed_q = int(time.time() - ss.q_start_time)
-        if sorted_words == words:
+        if ss.selected_words == words:
             status = "正解"
             st.success(f"正解！ {' '.join(words)}")
         else:
@@ -232,6 +224,7 @@ if ss.phase == "quiz" and ss.current:
                 "経過秒": elapsed_q,
             }
         )
+        ss.selected_words = []
         time.sleep(1)
         next_question()
         st.rerun()
