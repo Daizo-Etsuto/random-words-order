@@ -9,9 +9,14 @@ import io
 try:
     from streamlit_sortables import sort_items  # ✅ 並べ替え用ライブラリ
 except ModuleNotFoundError:
-    st.error("⚠️ ライブラリ `streamlit-sortables` がインストールされていません。\n\n以下を実行してください:\n```
+    st.error(
+        """⚠️ ライブラリ `streamlit-sortables` がインストールされていません。
+
+以下を実行してください:
+```
 pip install streamlit-sortables
-```")
+```"""
+    )
     st.stop()
 
 # ==== 日本時間 ====
