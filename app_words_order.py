@@ -140,8 +140,8 @@ def human_time(sec: int) -> str:
 def prepare_csv():
     # 履歴 DataFrame
     history_df = pd.DataFrame(ss.history)
-    # 累積総学習時間（現ラン分を加味）
-    total_seconds = int(ss.total_elapsed + (time.time() - ss.segment_start))
+    # 累積総学習時間（ダブルカウント防止のため、ss.total_elapsed をそのまま使う）
+    total_seconds = int(ss.total_elapsed)
     history_df["累計時間"] = human_time(total_seconds)
     # CSVへ
     timestamp = datetime.now(JST).strftime("%Y%m%d_%H%M%S")
@@ -189,7 +189,7 @@ if ss.phase == "quiz" and ss.current:
 
     # 選択UI（ボタン：選んだら候補から消える）
     cols = st.columns(max(1, min(6, len(ss.remaining_words))))
-    for i, w in enumerate(ss.remaining_words[:]):-
+    for i, w in enumerate(ss.remaining_words[:]):
         with cols[i % len(cols)]:
             if st.button(w, key=f"pick_{w}_{ss.run_answered}"):
                 # 追加 & 候補から削除
@@ -229,7 +229,7 @@ if ss.phase == "quiz" and ss.current:
                     "英文": sentence,
                     "結果": status,
                     "所要時間": human_time(elapsed_q),
-                    # 累計時間は保存時に最新値を入れるため、ここでは空でもOKだが見やすさのため入れない
+                    # "累計時間" は保存時に列として一括付与
                 }
             )
 
@@ -282,5 +282,4 @@ if ss.phase == "done":
             st.rerun()
     with c2:
         if st.button("終了", key="finish"):
-            # 終了して保存UIを残したい場合は finished にしてもよいが、ここでは done のまま停止
             st.stop()
