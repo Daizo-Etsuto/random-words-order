@@ -8,20 +8,13 @@ import io
 # ==== streamlit-sortables 読み込み ====
 try:
     import streamlit_sortables
-sorted_words = streamlit_sortables.sort_items(
-    shuffled,
-    direction="horizontal",
-    key=f"q_{len(ss.history)}"
-)
-
+    sort_items = streamlit_sortables.sort_items
 except ModuleNotFoundError:
     st.error(
         """⚠️ ライブラリ `streamlit-sortables` がインストールされていません。
 
 以下を実行してください:
-```
 pip install streamlit-sortables
-```"""
     )
     st.stop()
 
@@ -240,4 +233,5 @@ if ss.phase == "quiz" and ss.current:
         time.sleep(1)
         next_question()
         st.rerun()
+
 
