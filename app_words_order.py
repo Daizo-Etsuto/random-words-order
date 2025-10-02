@@ -209,7 +209,7 @@ if ss.phase == "quiz" and ss.current:
     # 表示文言（要望に合わせて）
     st.subheader("和訳")
     st.subheader("単語を並べ替えてください")
-    st.write(current.get("", ""))  # 空キー参照の要望に合わせ安全に取得
+    st.write(current.get("和訳")) 
 
     # 選択UI（ボタン：選んだら候補から消える）
     cols = st.columns(max(1, min(6, len(ss.remaining_words))))
@@ -310,3 +310,4 @@ if ss.phase == "done":
     with c2:
         if st.button("終了", key="finish"):
             st.stop()
+
