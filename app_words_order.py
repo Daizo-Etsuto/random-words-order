@@ -7,7 +7,13 @@ import io
 
 # ==== streamlit-sortables 読み込み ====
 try:
-    from streamlit_sortables import sort_items  # ✅ 並べ替え用ライブラリ
+    import streamlit_sortables
+sorted_words = streamlit_sortables.sort_items(
+    shuffled,
+    direction="horizontal",
+    key=f"q_{len(ss.history)}"
+)
+
 except ModuleNotFoundError:
     st.error(
         """⚠️ ライブラリ `streamlit-sortables` がインストールされていません。
@@ -234,3 +240,4 @@ if ss.phase == "quiz" and ss.current:
         time.sleep(1)
         next_question()
         st.rerun()
+
