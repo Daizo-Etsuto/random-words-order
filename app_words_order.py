@@ -33,21 +33,12 @@ st.markdown(
         padding: 0.4em;
         margin: 0.05em 0;
         font-size:20px;
+        width:100%;
     }
     .stTextInput>div>div>input {padding: 0.2em; font-size: 16px;}
     .translation {color:gray; font-size:16px; line-height:1.2; margin-bottom:0.8em;}
     .choice-header {margin-top:0.8em;}
     .progress {font-weight:bold; margin: 0.5rem 0;}
-
-    /* 単語ボタンを横並び＋折り返し */
-    div.word-wrap {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-    }
-    div.word-wrap > div {
-        margin: 0.2em;
-    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -202,15 +193,14 @@ if ss.phase == "quiz" and ss.current:
     st.subheader("単語を並べ替えてください")
     st.write(current.get("和訳"))
 
-    # ==== 単語ボタン（横並び・折り返し）====
-    st.markdown('<div class="word-wrap">', unsafe_allow_html=True)
+    # ==== 単語ボタン（均等配置）====
+    cols = st.columns(max(1, min(6, len(ss.remaining_words))))
     for i, w in enumerate(ss.remaining_words[:]):
-        with st.container():
+        with cols[i % len(cols)]:
             if st.button(w, key=f"pick_{ss.run_answered}_{i}"):
                 ss.selected_words.append(w)
                 ss.remaining_words.remove(w)
                 st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("あなたの並べ替え:", " ".join(ss.selected_words))
 
@@ -233,9 +223,9 @@ if ss.phase == "quiz" and ss.current:
             elapsed_q = int(time.time() - ss.q_start_time)
             status = "正解" if ss.selected_words == words else "不正解"
             if status == "正解":
-                st.success(f"<div style='text-align:left;'>✅ 正解！ {' '.join(words)}</div>", unsafe_allow_html=True)
+                st.success(f"✅ 正解！ {' '.join(words)}")
             else:
-                st.error(f"<div style='text-align:left;'>❌ 不正解… 正解は {' '.join(words)}</div>", unsafe_allow_html=True)
+                st.error(f"❌ 不正解… 正解は {' '.join(words)}")
 
             ss.history.append(
                 {
