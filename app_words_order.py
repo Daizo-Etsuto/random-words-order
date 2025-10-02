@@ -14,7 +14,9 @@ except ModuleNotFoundError:
         """⚠️ ライブラリ `streamlit-sortables` がインストールされていません。
 
 以下を実行してください:
+```
 pip install streamlit-sortables
+```"""
     )
     st.stop()
 
@@ -39,20 +41,20 @@ if now.date() >= datetime(2025, 11, 1, tzinfo=JST).date():
 # ==== スタイル調整 ====
 st.markdown(
     """
-<style>
-h1, h2, h3, h4, h5, h6 {margin-top: 0.2em; margin-bottom: 0.2em;}
-p, div, label {margin-top: 0.05em; margin-bottom: 0.05em; line-height: 1.1;}
-button, .stButton>button {
-    padding: 0.4em;
-    margin: 0.05em 0;
-    font-size:20px;
-    width:100%;
-}
-.stTextInput>div>div>input {padding: 0.2em; font-size: 16px;}
-.translation {color:gray; font-size:16px; line-height:1.2; margin-bottom:0.8em;}
-.choice-header {margin-top:0.8em;}
-</style>
-""",
+    <style>
+    h1, h2, h3, h4, h5, h6 {margin-top: 0.2em; margin-bottom: 0.2em;}
+    p, div, label {margin-top: 0.05em; margin-bottom: 0.05em; line-height: 1.1;}
+    button, .stButton>button {
+        padding: 0.4em;
+        margin: 0.05em 0;
+        font-size:20px;
+        width:100%;
+    }
+    .stTextInput>div>div>input {padding: 0.2em; font-size: 16px;}
+    .translation {color:gray; font-size:16px; line-height:1.2; margin-bottom:0.8em;}
+    .choice-header {margin-top:0.8em;}
+    </style>
+    """,
     unsafe_allow_html=True,
 )
 
@@ -207,7 +209,7 @@ if ss.phase == "quiz" and ss.current:
     st.write(current["和訳"])
 
     st.subheader("単語を並べ替えてください")
-    sorted_words = sort_items(  # ✅ こちらを利用
+    sorted_words = sort_items(
         shuffled,
         direction="horizontal",
         key=f"q_{len(ss.history)}"
@@ -233,5 +235,3 @@ if ss.phase == "quiz" and ss.current:
         time.sleep(1)
         next_question()
         st.rerun()
-
-
