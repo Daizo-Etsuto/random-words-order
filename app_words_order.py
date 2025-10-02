@@ -4,9 +4,15 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta, timezone
 import io
-import streamlit_sortables as ss
-sorted_words = ss.sort_items(shuffled, direction="horizontal", key=f"q_{len(ss.history)}")
 
+# ==== streamlit-sortables 読み込み ====
+try:
+    from streamlit_sortables import sort_items  # ✅ 並べ替え用ライブラリ
+except ModuleNotFoundError:
+    st.error("⚠️ ライブラリ `streamlit-sortables` がインストールされていません。\n\n以下を実行してください:\n```
+pip install streamlit-sortables
+```")
+    st.stop()
 
 # ==== 日本時間 ====
 try:
@@ -223,4 +229,3 @@ if ss.phase == "quiz" and ss.current:
         time.sleep(1)
         next_question()
         st.rerun()
-
