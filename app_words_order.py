@@ -95,10 +95,17 @@ ss.setdefault("current", None)
 ss.setdefault("selected_words", [])
 ss.setdefault("remaining_words", [])
 ss.setdefault("q_start_time", time.time())
-ss.setdefault("segment_start", time.time())       # 今回の学習開始時刻
+ss.setdefault("segment_start", time.time())       # 今回の学習開始時刻（参考）
+ss.setdefault("total_elapsed_before_run", 0)      # 今回ラン開始時点の累積秒
 ss.setdefault("user_name", "")
 
 # ==== ユーティリティ ====
+def human_time(sec: int) -> str:
+    m = sec // 60
+    s = sec % 60
+    return f"{m}分{s}秒"
+
+
 def pick_question_pool(n: int):
     """df から n件サンプリングして question_pool を作る"""
     n = max(1, min(n, len(df)))
@@ -109,6 +116,8 @@ def pick_question_pool(n: int):
 
 
 def start_run():
+    # ラン開始時点の累積時間をスナップショット
+    ss.total_elapsed_before_run = int(ss.total_elapsed)
     ss.segment_start = time.time()
     ss.q_start_time = time.time()
     ss.current = None
@@ -131,12 +140,6 @@ def next_question():
     ss.phase = "quiz"
 
 
-def human_time(sec: int) -> str:
-    m = sec // 60
-    s = sec % 60
-    return f"{m}分{s}秒"
-
-
 def prepare_csv():
     history_df = pd.DataFrame(ss.history)
 
@@ -145,7 +148,7 @@ def prepare_csv():
         if col in history_df.columns:
             history_df = history_df.drop(columns=[col])
 
-    # 累積総学習時間を可読表記で付与（全行に同値）
+    # 累積総学習時間（全行に同値）
     total_seconds = int(ss.total_elapsed)
     history_df["累計時間"] = human_time(total_seconds)
 
@@ -208,7 +211,7 @@ if ss.phase == "quiz" and ss.current:
 
     # 表示文言（要望に合わせて）
     st.subheader("単語を並べ替えてください")
-    st.write(current.get("和訳")) 
+    st.write(current.get("和訳"))  # 空キー参照の要望に合わせ安全に取得
 
     # 選択UI（ボタン：選んだら候補から消える）
     cols = st.columns(max(1, min(6, len(ss.remaining_words))))
@@ -245,7 +248,7 @@ if ss.phase == "quiz" and ss.current:
             else:
                 st.error(f"不正解… 正解は {' '.join(words)}")
 
-            # 履歴に追記（経過秒を保存、所要時間は保存しない）
+            # 履歴に追記（経過秒を保存）
             ss.history.append(
                 {
                     "出題形式": "並べ替え",
@@ -271,16 +274,12 @@ if ss.phase == "quiz" and ss.current:
 if ss.phase == "done":
     st.success("全問終了！お疲れさまでした🎉")
 
-    # 今回のラン時間
-    this_run_seconds = int(time.time() - ss.segment_start)
-    def human_time(sec: int) -> str:
-        m = sec // 60
-        s = sec % 60
-        return f"{m}分{s}秒"
+    # 今回の所要時間＝（ラン開始前の累積）との差分
+    this_run_seconds = int(ss.total_elapsed - ss.total_elapsed_before_run)
     st.info(f"今回の所要時間: {human_time(this_run_seconds)}")
 
-    # 累計時間
-    st.info(f"累積総時間: {human_time(ss.total_elapsed)}")
+    # 累計総時間（全ラン合計）
+    st.info(f"累計総時間: {human_time(int(ss.total_elapsed))}")
 
     # 保存UI（氏名＋CSV ダウンロード）
     st.subheader("学習履歴の保存")
@@ -299,15 +298,18 @@ if ss.phase == "done":
     c1, c2 = st.columns(2)
     with c1:
         if st.button("もう一回", key="again"):
-            # 履歴・累計は維持して再スタート
+            # 履歴・累積は維持して再スタート（累積継続）
             ss.phase = "menu"
             # ラン単位の状態だけ初期化
-            for k in ["question_pool", "run_total_questions", "run_answered", "current", "selected_words", "remaining_words"]:
+            for k in ["question_pool", "run_total_questions", "run_answered", "current", "selected_words", "remaining_words", "total_elapsed_before_run"]:
                 if k in ss:
                     del ss[k]
             st.rerun()
     with c2:
         if st.button("終了", key="finish"):
-            st.stop()
-
-
+            # ダウンロード後に「終了」で初期画面（問題数選択）へ完全リセット
+            ss.history = []
+            ss.total_elapsed = 0
+            reset_all(keep_history=False)  # file_uploader は保持
+            ss.phase = "menu"
+            st.rerun()
