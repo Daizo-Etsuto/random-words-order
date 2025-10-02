@@ -46,8 +46,13 @@ st.markdown(
         justify-content: flex-start;
         gap: 0.3em;
     }
+    .word-buttons form {
+        margin: 0;
+    }
     .word-buttons button {
         min-width: 60px;
+        padding: 0.4em 0.8em;
+        font-size: 16px;
     }
     </style>
     """,
@@ -203,14 +208,26 @@ if ss.phase == "quiz" and ss.current:
     st.subheader("単語を並べ替えてください")
     st.write(current.get("和訳"))
 
-    # ==== 単語ボタン（横並び・左寄せ）====
-    st.markdown('<div class="word-buttons">', unsafe_allow_html=True)
+    # ==== 単語ボタン（横並び左寄せ）====
+    buttons_html = '<div class="word-buttons">'
     for i, w in enumerate(ss.remaining_words[:]):
-        if st.button(w, key=f"pick_{ss.run_answered}_{i}"):
-            ss.selected_words.append(w)
-            ss.remaining_words.remove(w)
+        buttons_html += f"""
+        <form action="" method="post">
+            <input type="hidden" name="picked_word" value="{w}">
+            <button type="submit">{w}</button>
+        </form>
+        """
+    buttons_html += "</div>"
+    st.markdown(buttons_html, unsafe_allow_html=True)
+
+    # ==== ボタンクリック検出 ====
+    if "picked_word" in st.session_state:
+        chosen = st.session_state.picked_word
+        if chosen in ss.remaining_words:
+            ss.selected_words.append(chosen)
+            ss.remaining_words.remove(chosen)
+            del st.session_state["picked_word"]
             st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("あなたの並べ替え:", " ".join(ss.selected_words))
 
