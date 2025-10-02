@@ -4,7 +4,6 @@ import streamlit as st
 import time
 from datetime import datetime, timedelta, timezone
 import io
-import json
 
 # ==== 日本時間 ====
 try:
@@ -41,22 +40,13 @@ st.markdown(
     .progress {font-weight:bold; margin: 0.5rem 0;}
 
     /* 単語ボタンを横並び＋折り返し */
-    .word-buttons {
+    div.word-wrap {
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-start;
-        gap: 0.4em;
     }
-    .word-buttons button {
-        background-color: #f0f0f0;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        padding: 0.4em 0.8em;
-        font-size: 16px;
-        cursor: pointer;
-    }
-    .word-buttons button:hover {
-        background-color: #ddd;
+    div.word-wrap > div {
+        margin: 0.2em;
     }
     </style>
     """,
@@ -212,36 +202,17 @@ if ss.phase == "quiz" and ss.current:
     st.subheader("単語を並べ替えてください")
     st.write(current.get("和訳"))
 
-# ==== CSS で st.button を横並び・折り返しに ====
-st.markdown(
-    """
-    <style>
-    div.stButton > button {
-        margin: 0.2em;
-    }
-    div.word-wrap {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+    # ==== 単語ボタン（横並び・折り返し）====
+    st.markdown('<div class="word-wrap">', unsafe_allow_html=True)
+    for i, w in enumerate(ss.remaining_words[:]):
+        with st.container():
+            if st.button(w, key=f"pick_{ss.run_answered}_{i}"):
+                ss.selected_words.append(w)
+                ss.remaining_words.remove(w)
+                st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# ==== 単語ボタン ====
-st.write("単語を選んでください:")
-
-st.markdown('<div class="word-wrap">', unsafe_allow_html=True)
-for i, w in enumerate(ss.remaining_words[:]):
-    if st.button(w, key=f"pick_{ss.run_answered}_{i}"):
-        ss.selected_words.append(w)
-        ss.remaining_words.remove(w)
-        st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
-
-st.write("あなたの並べ替え:", " ".join(ss.selected_words))
-
+    st.write("あなたの並べ替え:", " ".join(ss.selected_words))
 
     # ==== 操作ボタン ====
     c1, c2, c3 = st.columns([1, 1, 1], gap="small")
@@ -321,4 +292,3 @@ if ss.phase == "done":
             reset_all(keep_history=False)
             ss.phase = "menu"
             st.rerun()
-
