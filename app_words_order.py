@@ -207,7 +207,6 @@ if ss.phase == "quiz" and ss.current:
     st.markdown(f"<div class='progress'>進捗: {ss.run_answered+1}/{ss.run_total_questions} 問</div>", unsafe_allow_html=True)
 
     # 表示文言（要望に合わせて）
-    st.subheader("和訳")
     st.subheader("単語を並べ替えてください")
     st.write(current.get("和訳")) 
 
@@ -310,4 +309,5 @@ if ss.phase == "done":
     with c2:
         if st.button("終了", key="finish"):
             st.stop()
+
 
